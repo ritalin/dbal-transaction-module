@@ -1,0 +1,27 @@
+{
+    "name": "ritalin/dbal-transaction-module",
+    "description": "Declarattive transaction support for Doctrine DBAL.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ritalin",
+            "homepage": "http://ritalin.github.io"
+        }
+    ],
+    "require": {
+        "php": ">=5.5.0",
+        "ritalin/transaction-api": "~0.1",
+        "ray/dbal-module": "dev-master"
+    },
+    "autoload": {
+        "psr-4": {
+            "TransactionApi\\Dbal\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": { 
+            "TransactionApi\\Dbal\\": "tests/"
+         }
+    }    
+}
