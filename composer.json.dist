@@ -9,24 +9,6 @@
             "homepage": "http://ritalin.github.io"
         }
     ],
-    "repositories": [
-        {
-            "type": "package",
-            "package": {
-                "name": "ritalin/transaction-api",
-                "version": "0.1.1",
-                "dist": {
-                    "type": "zip",
-                    "url": "file:///D:/work/tests/php/transaction-api/transaction-api/transaction-api.zip"
-                },
-                "autoload": {
-                    "psr-4": {
-                        "TransactionApi\\": "src/"
-                    }
-                }
-            }
-        }
-    ],
     "require": {
         "php": ">=5.5.0",
         "ritalin/transaction-api": "~0.1",
