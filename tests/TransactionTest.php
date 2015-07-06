@@ -63,6 +63,36 @@ class TransactionTest extends \PHPUnit_Framework_TestCase
     /**
      * @test
      */
+    public function test_rollbacking_transaction()
+    {
+        $dir = __DIR__;
+        $config = "driver=pdo_sqlite&path={$dir}/../var/db/todo.sqlite3";
+        
+        $injector = new Injector(new DbalModule($config));
+        $conn = $injector->getInstance(Connection::class);
+        
+        $annotation = new Transactional();
+        
+        $tran = new DbalTransaction($conn, $annotation);
+        $scope = new TransactionScope($tran, $annotation);
+
+        $this->assertEquals(0, $tran->depth());
+        
+        try {
+            $scope->runInto(function () use ($tran) {
+                $this->assertEquals(1, $tran->depth());
+                
+                throw new \LogicException('ERROR');
+            });
+        } catch (\LogicException $ex) {
+        }
+        
+        $this->assertEquals(0, $tran->depth());
+    }
+    
+    /**
+     * @test
+     */
     public function test_commiting_transaction_insertion_row()
     {
         $dir = __DIR__;
@@ -94,5 +124,120 @@ class TransactionTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse($row === false);
         $this->assertEquals(999, $row['id']);
         $this->assertEquals('transaction test', $row['todo']);
+    }
+    
+    /**
+     * @test
+     */
+    public function test_rollbacking_transaction_insertion_row()
+    {
+        $dir = __DIR__;
+        $config = "driver=pdo_sqlite&path={$dir}/../var/db/todo.sqlite3";
+        
+        $injector = new Injector(new DbalModule($config));
+        $conn = $injector->getInstance(Connection::class);
+        
+        $annotation = new Transactional();
+        
+        $tran = new DbalTransaction($conn, $annotation);
+        $scope = new TransactionScope($tran, $annotation);
+        
+        $dao = new DaoStub();
+        $row = $dao->select($conn, 999);
+
+        $this->assertTrue($row === false);
+        
+        try {
+            $scope->runInto(function () use ($dao, $conn) {
+                $dao->insert($conn, 999, 'transaction test');
+                
+                $row = $dao->select($conn, 999);
+                $this->assertFalse($row === false);
+                $this->assertEquals(999, $row['id']);
+                $this->assertEquals('transaction test', $row['todo']);
+                
+                throw new \LogicException('ERROR');
+            });
+        }
+        catch (\LogicException $ex) {
+        }
+        
+        $this->assertTrue($row === false);
+    }
+    
+    /**
+     * @test
+     */
+    public function test_commiting_nested_transaction()
+    {
+        $dir = __DIR__;
+        $config = "driver=pdo_sqlite&path={$dir}/../var/db/todo.sqlite3";
+        
+        $injector = new Injector(new DbalModule($config));
+        $conn = $injector->getInstance(Connection::class);
+        
+        $annotation = new Transactional();
+        $annotation->txType = TransactionScope::REQUIRES_NEW;
+        
+        $tran = new DbalTransaction($conn, $annotation);
+        $scope = new TransactionScope($tran, $annotation);
+
+        $this->assertEquals(0, $tran->depth());
+        
+        $scope->runInto(function () use ($tran, $scope) {
+            $this->assertEquals(1, $tran->depth());
+            
+            $scope->runInto(function () use ($tran, $scope) {
+                $this->assertEquals(2, $tran->depth());
+            });
+            
+            $this->assertEquals(1, $tran->depth());
+        });
+        
+        $this->assertEquals(0, $tran->depth());
+    }
+    
+    /**
+     * @test
+     */
+    public function test_rollbacking_nested_transaction()
+    {
+        $dir = __DIR__;
+        $config = "driver=pdo_sqlite&path={$dir}/../var/db/todo.sqlite3";
+        
+        $injector = new Injector(new DbalModule($config));
+        $conn = $injector->getInstance(Connection::class);
+        
+        $annotation = new Transactional();
+        $annotation->txType = TransactionScope::REQUIRES_NEW;
+        
+        $tran = new DbalTransaction($conn, $annotation);
+        $scope = new TransactionScope($tran, $annotation);
+
+        $this->assertEquals(0, $tran->depth());
+        
+        try {
+            $scope->runInto(function () use ($tran, $scope) {
+                $this->assertEquals(1, $tran->depth());
+                
+                try {
+                    $scope->runInto(function () use ($tran, $scope) {
+                        $this->assertEquals(2, $tran->depth());
+                    
+                        throw new \LogicException('ERROR');
+                    });
+                }
+                catch (\LogicException $ex) {
+                }
+                
+                $this->assertEquals(1, $tran->depth());
+                
+                throw new \LogicException('ERROR');
+            });
+        }
+        catch (\LogicException $ex) {
+        }
+        
+        $this->assertEquals(0, $tran->depth());
     }
 }

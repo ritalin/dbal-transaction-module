@@ -44,6 +44,7 @@ class DbalTransaction implements TransactionInterface
      */
     public function rollback()
     {
+        $this->conn->rollback();
     }
     
     /**
