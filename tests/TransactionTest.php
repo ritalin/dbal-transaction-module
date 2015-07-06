@@ -187,7 +187,7 @@ class TransactionTest extends \PHPUnit_Framework_TestCase
         $scope->runInto(function () use ($tran, $scope) {
             $this->assertEquals(1, $tran->depth());
             
-            $scope->runInto(function () use ($tran, $scope) {
+            $scope->runInto(function () use ($tran) {
                 $this->assertEquals(2, $tran->depth());
             });
             
@@ -221,7 +221,7 @@ class TransactionTest extends \PHPUnit_Framework_TestCase
                 $this->assertEquals(1, $tran->depth());
                 
                 try {
-                    $scope->runInto(function () use ($tran, $scope) {
+                    $scope->runInto(function () use ($tran) {
                         $this->assertEquals(2, $tran->depth());
                     
                         throw new \LogicException('ERROR');
@@ -239,5 +239,62 @@ class TransactionTest extends \PHPUnit_Framework_TestCase
         }
         
         $this->assertEquals(0, $tran->depth());
+    }
+    
+    /**
+     * @test
+     */
+    public function test_commiting_nested_transaction_insertion_row()
+    {
+        $dir = __DIR__;
+        $config = "driver=pdo_sqlite&path={$dir}/../var/db/todo.sqlite3";
+        
+        $injector = new Injector(new DbalModule($config));
+        $conn = $injector->getInstance(Connection::class);
+        
+        $annotation = new Transactional();
+        $annotation->txType = TransactionScope::REQUIRES_NEW;
+        
+        $tran = new DbalTransaction($conn, $annotation);
+        $scope = new TransactionScope($tran, $annotation);
+        
+        $dao = new DaoStub();
+
+        $this->assertTrue($dao->select($conn, 999) === false);
+        
+        $scope->runInto(function () use ($dao, $conn, $scope) {
+            $dao->insert($conn, 999, 'transaction test');
+            
+            $row = $dao->select($conn, 999);
+            $this->assertFalse($row === false);
+            $this->assertEquals(999, $row['id']);
+            $this->assertEquals('transaction test', $row['todo']);
+            
+            $this->assertTrue($dao->select($conn, 888) === false);
+            
+            $scope->runInto(function () use ($dao, $conn) {
+                $dao->insert($conn, 888, 'nested transaction test');
+                
+                $row = $dao->select($conn, 888);
+                $this->assertFalse($row === false);
+                $this->assertEquals(888, $row['id']);
+                $this->assertEquals('nested transaction test', $row['todo']);
+            });
+            
+            $row = $dao->select($conn, 999);
+            $this->assertFalse($row === false);
+            $this->assertEquals(999, $row['id']);
+            $this->assertEquals('transaction test', $row['todo']);
+        });
+        
+        $row = $dao->select($conn, 999);
+        $this->assertFalse($row === false);
+        $this->assertEquals(999, $row['id']);
+        $this->assertEquals('transaction test', $row['todo']);
+        
+        $row = $dao->select($conn, 888);
+        $this->assertFalse($row === false);
+        $this->assertEquals(888, $row['id']);
+        $this->assertEquals('nested transaction test', $row['todo']);
     }
 }
