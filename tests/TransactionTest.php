@@ -35,19 +35,24 @@ class TransactionTest extends \PHPUnit_Framework_TestCase
         );
     }
     
-    /**
-     * @test
-     */
-    public function test_commiting_transaction()
+    private function getConnection()
     {
         $dir = __DIR__;
         $config = "driver=pdo_sqlite&path={$dir}/../var/db/todo.sqlite3";
         
         $injector = new Injector(new DbalModule($config));
-        $conn = $injector->getInstance(Connection::class);
-        
+        return $injector->getInstance(Connection::class);
+    }
+    
+    
+    /**
+     * @test
+     */
+    public function test_commiting_transaction()
+    {
         $annotation = new Transactional();
         
+        $conn = $this->getConnection();
         $tran = new DbalTransaction($conn, $annotation);
         $scope = new TransactionScope($tran, $annotation);
 
@@ -65,14 +70,9 @@ class TransactionTest extends \PHPUnit_Framework_TestCase
      */
     public function test_rollbacking_transaction()
     {
-        $dir = __DIR__;
-        $config = "driver=pdo_sqlite&path={$dir}/../var/db/todo.sqlite3";
-        
-        $injector = new Injector(new DbalModule($config));
-        $conn = $injector->getInstance(Connection::class);
-        
         $annotation = new Transactional();
         
+        $conn = $this->getConnection();
         $tran = new DbalTransaction($conn, $annotation);
         $scope = new TransactionScope($tran, $annotation);
 
@@ -95,14 +95,9 @@ class TransactionTest extends \PHPUnit_Framework_TestCase
      */
     public function test_commiting_transaction_insertion_row()
     {
-        $dir = __DIR__;
-        $config = "driver=pdo_sqlite&path={$dir}/../var/db/todo.sqlite3";
-        
-        $injector = new Injector(new DbalModule($config));
-        $conn = $injector->getInstance(Connection::class);
-        
         $annotation = new Transactional();
         
+        $conn = $this->getConnection();
         $tran = new DbalTransaction($conn, $annotation);
         $scope = new TransactionScope($tran, $annotation);
         
@@ -131,14 +126,9 @@ class TransactionTest extends \PHPUnit_Framework_TestCase
      */
     public function test_rollbacking_transaction_insertion_row()
     {
-        $dir = __DIR__;
-        $config = "driver=pdo_sqlite&path={$dir}/../var/db/todo.sqlite3";
-        
-        $injector = new Injector(new DbalModule($config));
-        $conn = $injector->getInstance(Connection::class);
-        
         $annotation = new Transactional();
         
+        $conn = $this->getConnection();
         $tran = new DbalTransaction($conn, $annotation);
         $scope = new TransactionScope($tran, $annotation);
         
@@ -169,15 +159,10 @@ class TransactionTest extends \PHPUnit_Framework_TestCase
      */
     public function test_commiting_nested_transaction()
     {
-        $dir = __DIR__;
-        $config = "driver=pdo_sqlite&path={$dir}/../var/db/todo.sqlite3";
-        
-        $injector = new Injector(new DbalModule($config));
-        $conn = $injector->getInstance(Connection::class);
-        
         $annotation = new Transactional();
         $annotation->txType = TransactionScope::REQUIRES_NEW;
         
+        $conn = $this->getConnection();
         $tran = new DbalTransaction($conn, $annotation);
         $scope = new TransactionScope($tran, $annotation);
 
@@ -201,15 +186,10 @@ class TransactionTest extends \PHPUnit_Framework_TestCase
      */
     public function test_rollbacking_nested_transaction()
     {
-        $dir = __DIR__;
-        $config = "driver=pdo_sqlite&path={$dir}/../var/db/todo.sqlite3";
-        
-        $injector = new Injector(new DbalModule($config));
-        $conn = $injector->getInstance(Connection::class);
-        
         $annotation = new Transactional();
         $annotation->txType = TransactionScope::REQUIRES_NEW;
         
+        $conn = $this->getConnection();
         $tran = new DbalTransaction($conn, $annotation);
         $scope = new TransactionScope($tran, $annotation);
 
@@ -245,15 +225,10 @@ class TransactionTest extends \PHPUnit_Framework_TestCase
      */
     public function test_commiting_nested_transaction_insertion_row()
     {
-        $dir = __DIR__;
-        $config = "driver=pdo_sqlite&path={$dir}/../var/db/todo.sqlite3";
-        
-        $injector = new Injector(new DbalModule($config));
-        $conn = $injector->getInstance(Connection::class);
-        
         $annotation = new Transactional();
         $annotation->txType = TransactionScope::REQUIRES_NEW;
         
+        $conn = $this->getConnection();
         $tran = new DbalTransaction($conn, $annotation);
         $scope = new TransactionScope($tran, $annotation);
         
@@ -303,15 +278,10 @@ class TransactionTest extends \PHPUnit_Framework_TestCase
      */
     public function test_rollbacking_nested_transaction_insertion_row()
     {
-        $dir = __DIR__;
-        $config = "driver=pdo_sqlite&path={$dir}/../var/db/todo.sqlite3";
-        
-        $injector = new Injector(new DbalModule($config));
-        $conn = $injector->getInstance(Connection::class);
-        
         $annotation = new Transactional();
         $annotation->txType = TransactionScope::REQUIRES_NEW;
         
+        $conn = $this->getConnection();
         $tran = new DbalTransaction($conn, $annotation);
         $scope = new TransactionScope($tran, $annotation);
         
@@ -355,15 +325,10 @@ class TransactionTest extends \PHPUnit_Framework_TestCase
      */
     public function test_rollbacking_after_commiting_nested_transaction_insertion_row()
     {
-        $dir = __DIR__;
-        $config = "driver=pdo_sqlite&path={$dir}/../var/db/todo.sqlite3";
-        
-        $injector = new Injector(new DbalModule($config));
-        $conn = $injector->getInstance(Connection::class);
-        
         $annotation = new Transactional();
         $annotation->txType = TransactionScope::REQUIRES_NEW;
         
+        $conn = $this->getConnection();
         $tran = new DbalTransaction($conn, $annotation);
         $scope = new TransactionScope($tran, $annotation);
         
@@ -411,15 +376,10 @@ class TransactionTest extends \PHPUnit_Framework_TestCase
      */
     public function test_commiting_after_rollback_nested_transaction_insertion_row()
     {
-        $dir = __DIR__;
-        $config = "driver=pdo_sqlite&path={$dir}/../var/db/todo.sqlite3";
-        
-        $injector = new Injector(new DbalModule($config));
-        $conn = $injector->getInstance(Connection::class);
-        
         $annotation = new Transactional();
         $annotation->txType = TransactionScope::REQUIRES_NEW;
         
+        $conn = $this->getConnection();
         $tran = new DbalTransaction($conn, $annotation);
         $scope = new TransactionScope($tran, $annotation);
         
