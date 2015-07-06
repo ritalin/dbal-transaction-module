@@ -13,14 +13,17 @@ class DbalTransaction implements TransactionInterface
      * @var Connection
      */
     private $conn;
-    
+
     /**
      * @param Connection conn
      */
     public function __construct(Connection $conn, Transactional $annotation)
     {
         $this->conn = $conn;
-        $this->conn->setNestTransactionsWithSavepoints($annotation->txType === TransactionScope::REQUIRES_NEW);
+        
+        if (! $this->inTransaction()) {
+            $this->conn->setNestTransactionsWithSavepoints($annotation->txType === TransactionScope::REQUIRES_NEW);
+        }
     }
     
     /**

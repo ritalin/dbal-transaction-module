@@ -9,6 +9,7 @@ use Ray\Di\Exception\NotFound;
 use Doctrine\DBAL\Driver\Connection;
 use Doctrine\Common\Annotations\Reader;
 
+use TransactionApi\TransactionScope;
 use TransactionApi\Annotation\Transactional;
 
 class TransactionScopeInterceptor implements MethodInterceptor
@@ -26,6 +27,7 @@ class TransactionScopeInterceptor implements MethodInterceptor
     public function __construct(Connection $conn, Reader $reader)
     {
         $this->conn = $conn;
+        $this->reader = $reader;
     }
     
     /**
@@ -35,7 +37,7 @@ class TransactionScopeInterceptor implements MethodInterceptor
     {
         $annotation = $this->extractAnnotation($invocation->getMethod(), Transactional::class);
         
-        $scope = new TransactionScope(new DbalTransaction($conn, $annotation), $annotation);
+        $scope = new TransactionScope(new DbalTransaction($this->conn, $annotation), $annotation);
         
         return $scope->runInto(function() use ($invocation) {
             return $invocation->proceed();

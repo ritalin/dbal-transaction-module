@@ -19,8 +19,7 @@ class DaoStub
     
     public function select(Connection $conn, $id)
     {
-        return $conn->fetchAssoc('select * from todo where id = :id', ['id' => $id])
-        ;
+        return $conn->fetchAssoc('select * from todo where id = :id', ['id' => $id]);
     }
 }
 
@@ -53,16 +52,16 @@ class TransactionTest extends \PHPUnit_Framework_TestCase
         $annotation = new Transactional();
         
         $conn = $this->getConnection();
-        $tran = new DbalTransaction($conn, $annotation);
-        $scope = new TransactionScope($tran, $annotation);
+        $trans = new DbalTransaction($conn, $annotation);
+        $scope = new TransactionScope($trans, $annotation);
 
-        $this->assertEquals(0, $tran->depth());
+        $this->assertEquals(0, $trans->depth());
         
-        $scope->runInto(function () use ($tran) {
-            $this->assertEquals(1, $tran->depth());
+        $scope->runInto(function () use ($trans) {
+            $this->assertEquals(1, $trans->depth());
         });
         
-        $this->assertEquals(0, $tran->depth());
+        $this->assertEquals(0, $trans->depth());
     }
     
     /**
@@ -73,21 +72,21 @@ class TransactionTest extends \PHPUnit_Framework_TestCase
         $annotation = new Transactional();
         
         $conn = $this->getConnection();
-        $tran = new DbalTransaction($conn, $annotation);
-        $scope = new TransactionScope($tran, $annotation);
+        $trans = new DbalTransaction($conn, $annotation);
+        $scope = new TransactionScope($trans, $annotation);
 
-        $this->assertEquals(0, $tran->depth());
+        $this->assertEquals(0, $trans->depth());
         
         try {
-            $scope->runInto(function () use ($tran) {
-                $this->assertEquals(1, $tran->depth());
+            $scope->runInto(function () use ($trans) {
+                $this->assertEquals(1, $trans->depth());
                 
                 throw new \LogicException('ERROR');
             });
         } catch (\LogicException $ex) {
         }
         
-        $this->assertEquals(0, $tran->depth());
+        $this->assertEquals(0, $trans->depth());
     }
     
     /**
@@ -98,8 +97,8 @@ class TransactionTest extends \PHPUnit_Framework_TestCase
         $annotation = new Transactional();
         
         $conn = $this->getConnection();
-        $tran = new DbalTransaction($conn, $annotation);
-        $scope = new TransactionScope($tran, $annotation);
+        $trans = new DbalTransaction($conn, $annotation);
+        $scope = new TransactionScope($trans, $annotation);
         
         $dao = new DaoStub();
         $row = $dao->select($conn, 999);
@@ -129,8 +128,8 @@ class TransactionTest extends \PHPUnit_Framework_TestCase
         $annotation = new Transactional();
         
         $conn = $this->getConnection();
-        $tran = new DbalTransaction($conn, $annotation);
-        $scope = new TransactionScope($tran, $annotation);
+        $trans = new DbalTransaction($conn, $annotation);
+        $scope = new TransactionScope($trans, $annotation);
         
         $dao = new DaoStub();
 
@@ -163,22 +162,22 @@ class TransactionTest extends \PHPUnit_Framework_TestCase
         $annotation->txType = TransactionScope::REQUIRES_NEW;
         
         $conn = $this->getConnection();
-        $tran = new DbalTransaction($conn, $annotation);
-        $scope = new TransactionScope($tran, $annotation);
+        $trans = new DbalTransaction($conn, $annotation);
+        $scope = new TransactionScope($trans, $annotation);
 
-        $this->assertEquals(0, $tran->depth());
+        $this->assertEquals(0, $trans->depth());
         
-        $scope->runInto(function () use ($tran, $scope) {
-            $this->assertEquals(1, $tran->depth());
+        $scope->runInto(function () use ($trans, $scope) {
+            $this->assertEquals(1, $trans->depth());
             
-            $scope->runInto(function () use ($tran) {
-                $this->assertEquals(2, $tran->depth());
+            $scope->runInto(function () use ($trans) {
+                $this->assertEquals(2, $trans->depth());
             });
             
-            $this->assertEquals(1, $tran->depth());
+            $this->assertEquals(1, $trans->depth());
         });
         
-        $this->assertEquals(0, $tran->depth());
+        $this->assertEquals(0, $trans->depth());
     }
     
     /**
@@ -190,18 +189,18 @@ class TransactionTest extends \PHPUnit_Framework_TestCase
         $annotation->txType = TransactionScope::REQUIRES_NEW;
         
         $conn = $this->getConnection();
-        $tran = new DbalTransaction($conn, $annotation);
-        $scope = new TransactionScope($tran, $annotation);
+        $trans = new DbalTransaction($conn, $annotation);
+        $scope = new TransactionScope($trans, $annotation);
 
-        $this->assertEquals(0, $tran->depth());
+        $this->assertEquals(0, $trans->depth());
         
         try {
-            $scope->runInto(function () use ($tran, $scope) {
-                $this->assertEquals(1, $tran->depth());
+            $scope->runInto(function () use ($trans, $scope) {
+                $this->assertEquals(1, $trans->depth());
                 
                 try {
-                    $scope->runInto(function () use ($tran) {
-                        $this->assertEquals(2, $tran->depth());
+                    $scope->runInto(function () use ($trans) {
+                        $this->assertEquals(2, $trans->depth());
                     
                         throw new \LogicException('ERROR');
                     });
@@ -209,7 +208,7 @@ class TransactionTest extends \PHPUnit_Framework_TestCase
                 catch (\LogicException $ex) {
                 }
                 
-                $this->assertEquals(1, $tran->depth());
+                $this->assertEquals(1, $trans->depth());
                 
                 throw new \LogicException('ERROR');
             });
@@ -217,7 +216,7 @@ class TransactionTest extends \PHPUnit_Framework_TestCase
         catch (\LogicException $ex) {
         }
         
-        $this->assertEquals(0, $tran->depth());
+        $this->assertEquals(0, $trans->depth());
     }
     
     /**
@@ -229,8 +228,8 @@ class TransactionTest extends \PHPUnit_Framework_TestCase
         $annotation->txType = TransactionScope::REQUIRES_NEW;
         
         $conn = $this->getConnection();
-        $tran = new DbalTransaction($conn, $annotation);
-        $scope = new TransactionScope($tran, $annotation);
+        $trans = new DbalTransaction($conn, $annotation);
+        $scope = new TransactionScope($trans, $annotation);
         
         $dao = new DaoStub();
 
@@ -282,8 +281,8 @@ class TransactionTest extends \PHPUnit_Framework_TestCase
         $annotation->txType = TransactionScope::REQUIRES_NEW;
         
         $conn = $this->getConnection();
-        $tran = new DbalTransaction($conn, $annotation);
-        $scope = new TransactionScope($tran, $annotation);
+        $trans = new DbalTransaction($conn, $annotation);
+        $scope = new TransactionScope($trans, $annotation);
         
         $dao = new DaoStub();
 
@@ -329,8 +328,8 @@ class TransactionTest extends \PHPUnit_Framework_TestCase
         $annotation->txType = TransactionScope::REQUIRES_NEW;
         
         $conn = $this->getConnection();
-        $tran = new DbalTransaction($conn, $annotation);
-        $scope = new TransactionScope($tran, $annotation);
+        $trans = new DbalTransaction($conn, $annotation);
+        $scope = new TransactionScope($trans, $annotation);
         
         $dao = new DaoStub();
 
@@ -380,8 +379,8 @@ class TransactionTest extends \PHPUnit_Framework_TestCase
         $annotation->txType = TransactionScope::REQUIRES_NEW;
         
         $conn = $this->getConnection();
-        $tran = new DbalTransaction($conn, $annotation);
-        $scope = new TransactionScope($tran, $annotation);
+        $trans = new DbalTransaction($conn, $annotation);
+        $scope = new TransactionScope($trans, $annotation);
         
         $dao = new DaoStub();
 
