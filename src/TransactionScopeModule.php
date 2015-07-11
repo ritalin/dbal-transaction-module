@@ -3,7 +3,6 @@
 namespace TransactionApi\Dbal;
 
 use Ray\Di\AbstractModule;
-
 use TransactionApi\Annotation\Transactional;
 
 class TransactionScopeModule extends AbstractModule

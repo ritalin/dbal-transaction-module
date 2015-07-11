@@ -3,9 +3,8 @@
 namespace TransactionApi\Dbal\Targets;
 
 use Doctrine\DBAL\Driver\Connection;
-
-use TransactionApi\TransactionScope;
 use TransactionApi\Annotation\Transactional;
+use TransactionApi\TransactionScope;
 
 class TodoModel
 {
@@ -13,17 +12,17 @@ class TodoModel
      * @var Connection
      */
     private $conn;
-    
+
     public function __construct(Connection $conn)
     {
         $this->conn = $conn;
     }
-    
+
     private function InsertInternal($id, $text)
     {
         $this->conn->insert('todo', ['id' => $id, 'todo' => $text, 'created' => time()]);
     }
-    
+
     /**
      * @Transactional
      */
@@ -31,7 +30,7 @@ class TodoModel
     {
         $this->insertInternal($id, $text);
     }
-    
+
     /**
      * @Transactional
      */
@@ -39,10 +38,10 @@ class TodoModel
     {
         $this->insertInternal($id, $text);
         $fn($this);
-        
+
         throw new \LogicException('Error occured duaring insertion');
     }
-    
+
     /**
      * @Transactional(txType=TransactionScope::REQUIRES)
      */
@@ -50,7 +49,7 @@ class TodoModel
     {
         $this->insertInternal($id, $text);
     }
-    
+
     /**
      * @Transactional(txType=TransactionScope::REQUIRES)
      */
@@ -58,10 +57,10 @@ class TodoModel
     {
         $this->insertInternal($id, $text);
         $fn($this);
-        
+
         throw new \LogicException('Error occured duaring insertion');
     }
-    
+
     /**
      * @Transactional(txType=TransactionScope::REQUIRES_NEW)
      */
@@ -69,7 +68,7 @@ class TodoModel
     {
         $this->insertInternal($id, $text);
     }
-    
+
     /**
      * @Transactional(txType=TransactionScope::REQUIRES_NEW)
      */
@@ -77,10 +76,10 @@ class TodoModel
     {
         $this->insertInternal($id, $text);
         $fn($this);
-        
+
         throw new \LogicException('Error occured duaring insertion');
     }
-    
+
     public function select($id)
     {
         return $this->conn->fetchAssoc('select * from todo where id = :id', ['id' => $id]);

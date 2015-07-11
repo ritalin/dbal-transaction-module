@@ -3,9 +3,9 @@
 namespace TransactionApi\Dbal;
 
 use Doctrine\DBAL\Driver\Connection;
+use TransactionApi\Annotation\Transactional;
 use TransactionApi\TransactionInterface;
 use TransactionApi\TransactionScope;
-use TransactionApi\Annotation\Transactional;
 
 class DbalTransaction implements TransactionInterface
 {
@@ -20,12 +20,12 @@ class DbalTransaction implements TransactionInterface
     public function __construct(Connection $conn, Transactional $annotation)
     {
         $this->conn = $conn;
-        
+
         if (! $this->inTransaction()) {
             $this->conn->setNestTransactionsWithSavepoints($annotation->txType === TransactionScope::REQUIRES_NEW);
         }
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -33,7 +33,7 @@ class DbalTransaction implements TransactionInterface
     {
         $this->conn->beginTransaction();
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -41,7 +41,7 @@ class DbalTransaction implements TransactionInterface
     {
         $this->conn->commit();
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -49,7 +49,7 @@ class DbalTransaction implements TransactionInterface
     {
         $this->conn->rollback();
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -57,7 +57,7 @@ class DbalTransaction implements TransactionInterface
     {
         return $this->depth() > 0;
     }
-    
+
     /**
      * {@inheritdoc}
      */
